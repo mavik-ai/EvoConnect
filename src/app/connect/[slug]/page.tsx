@@ -2,8 +2,7 @@
 
 import useSWR from 'swr';
 import { useParams } from 'next/navigation';
-import { Loader2, CheckCircle2, ShieldCheck, RefreshCw } from 'lucide-react';
-import { GlassCard } from '@/components/ui/GlassCard';
+import { Loader2, CheckCircle2, ShieldCheck, Sparkles, Smartphone } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/ui/Toast';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -28,150 +27,352 @@ export default function ConnectPage() {
 
   if (statusData?.isConnected) {
     return (
-      <main className="connect-container">
+      <main className="connect-shell">
         <ToastContainer toasts={toasts} removeToast={removeToast} />
-        <GlassCard className="status-card success">
-          <CheckCircle2 size={72} color="var(--success)" />
-          <h2 style={{ marginTop: '20px' }}>WhatsApp conectado!</h2>
-          <p style={{ marginTop: '8px' }}>
-            Instância <strong>{slug}</strong> está ativa e sincronizada.
+        <div className="success-card">
+          <div className="success-ring">
+            <div className="success-ic">
+              <CheckCircle2 size={56} strokeWidth={1.5} />
+            </div>
+          </div>
+          <h2>WhatsApp conectado!</h2>
+          <p className="success-sub">
+            A instância <strong>{String(slug)}</strong> está ativa e sincronizada.
           </p>
-          <p style={{ fontSize: '0.875rem', marginTop: '24px', color: 'var(--text-secondary)' }}>
-            Você já pode fechar esta aba.
-          </p>
-        </GlassCard>
-        <style jsx>{`
-          .connect-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            max-width: 500px;
-            margin: 0 auto;
-          }
-          .status-card.success {
-            text-align: center;
-            padding: 60px 40px;
-          }
-        `}</style>
+          <div className="success-divider" />
+          <p className="success-hint">Você já pode fechar esta aba com tranquilidade.</p>
+        </div>
+        <ConnectStyles />
       </main>
     );
   }
 
   const qrBase64: string | undefined = connectData?.base64 ?? connectData?.qrcode?.base64;
+  const isLoadingQr = !qrBase64;
 
   return (
-    <main className="connect-container">
+    <main className="connect-shell">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="connect-header">
-        <h1>Conectar WhatsApp</h1>
-        <p>Instância: <strong>{slug}</strong></p>
-      </div>
 
-      <GlassCard className="main-connect-card">
-        <div className="qrcode-section">
-          {qrBase64 ? (
-            <div className="qr-wrapper">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qrBase64} alt="QR Code" />
+      <header className="connect-header">
+        <div className="brand-mark">
+          <Sparkles size={14} />
+          <span>Conexão segura</span>
+        </div>
+        <h1>Conecte seu <span className="grad">WhatsApp</span></h1>
+        <p className="sub">
+          Instância <strong>{String(slug)}</strong> · aponte a câmera do celular para o código
+        </p>
+      </header>
+
+      <section className="qr-card">
+        <div className="qr-frame">
+          {isLoadingQr ? (
+            <div className="qr-loading">
+              <Loader2 className="spin" size={40} />
+              <span>Gerando QR Code…</span>
             </div>
           ) : (
-            <div className="loading-wrapper">
-              <Loader2 className="spin" size={48} />
-              <p>Gerando QR Code...</p>
-            </div>
+            <>
+              <span className="corner tl" />
+              <span className="corner tr" />
+              <span className="corner bl" />
+              <span className="corner br" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrBase64} alt="QR Code" />
+            </>
           )}
-          <div className="instructions">
-            <ol>
-              <li>Abra o WhatsApp no seu celular</li>
-              <li>Toque em <strong>Configurações</strong> ou <strong>Menu</strong></li>
-              <li>Selecione <strong>Aparelhos Conectados</strong></li>
-              <li>Toque em <strong>Conectar um Aparelho</strong> e aponte para a tela</li>
-            </ol>
-          </div>
         </div>
-      </GlassCard>
 
-      <div className="footer-badges">
-        <div className="badge">
-          <ShieldCheck size={16} /> Conexão Criptografada
+        <div className="status-pill">
+          <span className="dot" />
+          Aguardando leitura
         </div>
-        <div className="badge">
-          <RefreshCw size={16} /> Sincronização em Tempo Real
-        </div>
-      </div>
+      </section>
 
-      <style jsx>{`
-        .connect-container {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          max-width: 500px;
-          margin: 0 auto;
-        }
-        .connect-header {
-          text-align: center;
-          margin-bottom: 30px;
-        }
-        .connect-header h1 {
-          font-size: 2rem;
-          margin-bottom: 8px;
-        }
-        .main-connect-card {
-          width: 100%;
-          text-align: center;
-        }
-        .qr-wrapper img {
-          width: 260px;
-          height: 260px;
-          background: white;
-          padding: 10px;
-          border-radius: 12px;
-          margin-bottom: 24px;
-        }
-        .loading-wrapper {
-          padding: 60px 0;
-          color: var(--text-secondary);
-        }
-        .instructions {
-          text-align: left;
-          background: rgba(255,255,255,0.03);
-          padding: 20px;
-          border-radius: 12px;
-          font-size: 0.9rem;
-          color: var(--text-secondary);
-        }
-        .instructions ol {
-          padding-left: 20px;
-        }
-        .instructions li {
-          margin-bottom: 8px;
-        }
-        .footer-badges {
-          display: flex;
-          gap: 20px;
-          margin-top: 40px;
-        }
-        .badge {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.75rem;
-          color: var(--text-secondary);
-          opacity: 0.7;
-        }
-        .spin {
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <section className="steps">
+        <Step n={1} title="Abra o WhatsApp" desc="No seu celular, acesse o app do WhatsApp." />
+        <Step n={2} title="Aparelhos Conectados" desc="Toque em Configurações → Aparelhos Conectados." />
+        <Step n={3} title="Escaneie o código" desc="Selecione “Conectar um Aparelho” e aponte para esta tela." />
+      </section>
+
+      <footer className="footer">
+        <div className="badge">
+          <ShieldCheck size={14} />
+          Criptografia ponta a ponta
+        </div>
+        <div className="badge">
+          <Smartphone size={14} />
+          Somente leitura do QR
+        </div>
+      </footer>
+
+      <ConnectStyles />
     </main>
+  );
+}
+
+function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
+  return (
+    <div className="step">
+      <div className="step-n">{n}</div>
+      <div>
+        <div className="step-title">{title}</div>
+        <div className="step-desc">{desc}</div>
+      </div>
+    </div>
+  );
+}
+
+function ConnectStyles() {
+  return (
+    <style jsx global>{`
+      .connect-shell {
+        min-height: 100vh;
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 56px 20px 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+      .connect-shell::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(37,211,102,0.25), transparent 60%);
+        filter: blur(50px);
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .connect-header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--primary);
+        background: rgba(37,211,102,0.08);
+        border: 1px solid rgba(37,211,102,0.2);
+        margin-bottom: 14px;
+      }
+      .connect-header h1 {
+        font-size: clamp(1.7rem, 6vw, 2.2rem);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .grad {
+        background: linear-gradient(135deg, #25D366 0%, #7cf7af 60%, #ffffff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .connect-header .sub {
+        margin-top: 8px;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .qr-card {
+        width: 100%;
+        padding: 28px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+        border: 1px solid var(--border-glass);
+        backdrop-filter: blur(20px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
+      }
+      .qr-frame {
+        position: relative;
+        width: 260px;
+        height: 260px;
+        padding: 14px;
+        border-radius: 20px;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .qr-frame img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .qr-loading {
+        color: #3a3a3a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+      }
+      .corner {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-color: var(--primary);
+        border-style: solid;
+        border-width: 0;
+      }
+      .corner.tl { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 12px; }
+      .corner.tr { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 12px; }
+      .corner.bl { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 12px; }
+      .corner.br { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 12px; }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border-glass);
+      }
+      .status-pill .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 10px var(--primary);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.7); }
+      }
+
+      .steps {
+        margin-top: 24px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .step {
+        display: flex;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.025);
+        border: 1px solid var(--border-glass);
+        align-items: flex-start;
+      }
+      .step-n {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(37,211,102,0.1);
+        border: 1px solid rgba(37,211,102,0.25);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .step-title { font-size: 0.92rem; font-weight: 500; }
+      .step-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+
+      .footer {
+        margin-top: 32px;
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        opacity: 0.8;
+      }
+
+      .success-card {
+        text-align: center;
+        padding: 60px 32px;
+        width: 100%;
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(37,211,102,0.08), rgba(255,255,255,0.01));
+        border: 1px solid rgba(37,211,102,0.25);
+        box-shadow: 0 30px 80px -20px rgba(37,211,102,0.25);
+        animation: popIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      @keyframes popIn {
+        0% { transform: scale(0.94); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .success-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(37,211,102,0.25), transparent 70%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .success-ring::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1px solid rgba(37,211,102,0.35);
+        animation: ring 2s ease-out infinite;
+      }
+      @keyframes ring {
+        0% { transform: scale(0.85); opacity: 0.9; }
+        100% { transform: scale(1.25); opacity: 0; }
+      }
+      .success-ic {
+        color: var(--success);
+        background: rgba(37,211,102,0.15);
+        border-radius: 50%;
+        width: 88px;
+        height: 88px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .success-card h2 {
+        font-size: 1.6rem;
+        letter-spacing: -0.02em;
+        font-weight: 600;
+      }
+      .success-sub { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; }
+      .success-divider {
+        margin: 28px auto 20px;
+        width: 60px;
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+      }
+      .success-hint { font-size: 0.85rem; color: var(--text-secondary); }
+
+      .spin { animation: spin 1s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    `}</style>
   );
 }
