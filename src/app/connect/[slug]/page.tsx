@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { useParams } from 'next/navigation';
-import { Loader2, CheckCircle2, ShieldCheck, Sparkles, Smartphone } from 'lucide-react';
+import { Loader2, CheckCircle2, ShieldCheck, HelpCircle, ChevronDown } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/ui/Toast';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -54,22 +54,16 @@ export default function ConnectPage() {
     <main className="connect-shell">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
-      <header className="connect-header">
-        <div className="brand-mark">
-          <Sparkles size={14} />
-          <span>Conexão segura</span>
-        </div>
+      <header className="connect-header-compact">
         <h1>Conecte seu <span className="grad">WhatsApp</span></h1>
-        <p className="sub">
-          Instância <strong>{String(slug)}</strong> · aponte a câmera do celular para o código
-        </p>
+        <p className="sub">Instância <strong>{String(slug)}</strong></p>
       </header>
 
       <section className="qr-card">
         <div className="qr-frame">
           {isLoadingQr ? (
             <div className="qr-loading">
-              <Loader2 className="spin" size={40} />
+              <Loader2 className="spin" size={48} />
               <span>Gerando QR Code…</span>
             </div>
           ) : (
@@ -90,20 +84,23 @@ export default function ConnectPage() {
         </div>
       </section>
 
-      <section className="steps">
-        <Step n={1} title="Abra o WhatsApp" desc="No seu celular, acesse o app do WhatsApp." />
-        <Step n={2} title="Aparelhos Conectados" desc="Toque em Configurações → Aparelhos Conectados." />
-        <Step n={3} title="Escaneie o código" desc="Selecione “Conectar um Aparelho” e aponte para esta tela." />
-      </section>
+      <details className="help-accordion">
+        <summary>
+          <HelpCircle size={16} />
+          <span>Como escanear?</span>
+          <ChevronDown size={16} className="chev" />
+        </summary>
+        <div className="help-body">
+          <Step n={1} title="Abra o WhatsApp" desc="No seu celular, acesse o app do WhatsApp." />
+          <Step n={2} title="Aparelhos Conectados" desc="Toque em Configurações → Aparelhos Conectados." />
+          <Step n={3} title="Escaneie o código" desc="Selecione “Conectar um Aparelho” e aponte para esta tela." />
+        </div>
+      </details>
 
       <footer className="footer">
         <div className="badge">
           <ShieldCheck size={14} />
-          Criptografia ponta a ponta
-        </div>
-        <div className="badge">
-          <Smartphone size={14} />
-          Somente leitura do QR
+          Conexão segura · seus dados não são armazenados
         </div>
       </footer>
 
@@ -129,9 +126,9 @@ function ConnectStyles() {
     <style jsx global>{`
       .connect-shell {
         min-height: 100vh;
-        max-width: 520px;
+        max-width: 560px;
         margin: 0 auto;
-        padding: 56px 20px 40px;
+        padding: 40px 20px 40px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -143,37 +140,23 @@ function ConnectStyles() {
         top: -100px;
         left: 50%;
         transform: translateX(-50%);
-        width: 420px;
-        height: 420px;
+        width: 500px;
+        height: 500px;
         background: radial-gradient(circle, rgba(37,211,102,0.25), transparent 60%);
         filter: blur(50px);
         z-index: -1;
         pointer-events: none;
       }
 
-      .connect-header {
+      .connect-header-compact {
         text-align: center;
-        margin-bottom: 28px;
+        margin-bottom: 20px;
       }
-      .brand-mark {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--primary);
-        background: rgba(37,211,102,0.08);
-        border: 1px solid rgba(37,211,102,0.2);
-        margin-bottom: 14px;
-      }
-      .connect-header h1 {
-        font-size: clamp(1.7rem, 6vw, 2.2rem);
+      .connect-header-compact h1 {
+        font-size: clamp(1.4rem, 5vw, 1.75rem);
         font-weight: 600;
         letter-spacing: -0.02em;
-        line-height: 1.1;
+        line-height: 1.15;
       }
       .grad {
         background: linear-gradient(135deg, #25D366 0%, #7cf7af 60%, #ffffff 100%);
@@ -181,31 +164,31 @@ function ConnectStyles() {
         background-clip: text;
         color: transparent;
       }
-      .connect-header .sub {
-        margin-top: 8px;
+      .connect-header-compact .sub {
+        margin-top: 6px;
         color: var(--text-secondary);
-        font-size: 0.92rem;
+        font-size: 0.85rem;
       }
 
       .qr-card {
         width: 100%;
         padding: 28px;
-        border-radius: 24px;
+        border-radius: 28px;
         background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
         border: 1px solid var(--border-glass);
         backdrop-filter: blur(20px);
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 18px;
+        gap: 20px;
         box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
       }
       .qr-frame {
         position: relative;
-        width: 260px;
-        height: 260px;
-        padding: 14px;
-        border-radius: 20px;
+        width: min(400px, 70vw);
+        aspect-ratio: 1 / 1;
+        padding: 18px;
+        border-radius: 24px;
         background: #ffffff;
         display: flex;
         align-items: center;
@@ -261,9 +244,32 @@ function ConnectStyles() {
         50% { opacity: 0.4; transform: scale(0.7); }
       }
 
-      .steps {
-        margin-top: 24px;
+      .help-accordion {
+        margin-top: 20px;
         width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--border-glass);
+        background: rgba(255,255,255,0.02);
+        overflow: hidden;
+      }
+      .help-accordion summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 18px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        list-style: none;
+        user-select: none;
+      }
+      .help-accordion summary::-webkit-details-marker { display: none; }
+      .help-accordion summary span { flex: 1; }
+      .help-accordion .chev { transition: transform 0.2s ease; }
+      .help-accordion[open] .chev { transform: rotate(180deg); }
+      .help-accordion[open] summary { border-bottom: 1px solid var(--border-glass); color: var(--text-primary); }
+      .help-body {
+        padding: 16px;
         display: flex;
         flex-direction: column;
         gap: 10px;
