@@ -6,7 +6,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Smartphone, CheckCircle, XCircle, Loader2, Trash2, Link as LinkIcon } from 'lucide-react';
 
 interface InstanceCardProps {
-  instance: EvolutionInstance;
+  instance: EvolutionInstance & { connectToken?: string };
   onDelete: (name: string) => void;
 }
 
@@ -40,7 +40,8 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({ instance, onDelete }
   const [copied, setCopied] = React.useState(false);
 
   const copyLink = () => {
-    const url = `${window.location.origin}/connect/${instance.instanceName}`;
+    if (!instance.connectToken) return;
+    const url = `${window.location.origin}/connect/${instance.instanceName}?t=${instance.connectToken}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

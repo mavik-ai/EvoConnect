@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSettings, saveSettings, EvolutionService } from '@/lib/evolution';
+import { SESSION_COOKIE, verifySession } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-  if (req.cookies.get('evo_admin_auth')?.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!verifySession(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const current = getSettings();
   
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (req.cookies.get('evo_admin_auth')?.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!verifySession(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     const { url, globalKey } = await req.json();

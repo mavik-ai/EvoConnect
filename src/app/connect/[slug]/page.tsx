@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Loader2, CheckCircle2, ShieldCheck, HelpCircle, ChevronDown } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/ui/Toast';
 
@@ -9,21 +9,35 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ConnectPage() {
   const { slug } = useParams();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('t') ?? '';
   const { toasts, removeToast } = useToast();
 
   const { data: statusData } = useSWR(
-    slug ? `/api/connect/status?name=${slug}` : null,
+    slug && token ? `/api/connect/status?name=${slug}&t=${token}` : null,
     fetcher,
     { refreshInterval: 4000 }
   );
 
   const { data: connectData } = useSWR(
-    slug && !statusData?.isConnected
-      ? `/api/connect/data?name=${slug}&type=qrcode`
+    slug && token && !statusData?.isConnected
+      ? `/api/connect/data?name=${slug}&type=qrcode&t=${token}`
       : null,
     fetcher,
     { refreshInterval: 30000 }
   );
+
+  if (!token) {
+    return (
+      <main className="connect-shell">
+        <div className="success-card" style={{ borderColor: 'rgba(255,69,58,0.25)', background: 'linear-gradient(180deg, rgba(255,69,58,0.08), rgba(255,255,255,0.01))', boxShadow: '0 30px 80px -20px rgba(255,69,58,0.25)' }}>
+          <h2>Link inválido</h2>
+          <p className="success-sub">Este link está incompleto ou expirado. Solicite um novo link ao administrador.</p>
+        </div>
+        <ConnectStyles />
+      </main>
+    );
+  }
 
   if (statusData?.isConnected) {
     return (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EvolutionService } from '@/lib/evolution';
+import { verifyInstanceToken } from '@/lib/auth';
 
 interface EvoInstanceShape {
   instanceName?: string;
@@ -13,8 +14,12 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const name = searchParams.get('name');
+    const token = searchParams.get('t');
 
     if (!name) return NextResponse.json({ error: 'Nome da instância é obrigatório' }, { status: 400 });
+    if (!verifyInstanceToken(name, token ?? undefined)) {
+      return NextResponse.json({ error: 'Link inválido ou expirado' }, { status: 403 });
+    }
 
     const instances: EvoInstanceShape[] = await EvolutionService.getInstances();
     const found = instances.find((i) => {

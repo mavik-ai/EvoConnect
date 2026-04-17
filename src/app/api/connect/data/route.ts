@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EvolutionService } from '@/lib/evolution';
 import { systemLogger } from '@/lib/logger';
+import { verifyInstanceToken } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const name = searchParams.get('name');
+    const token = searchParams.get('t');
     const type = searchParams.get('type') || 'qrcode'; // 'qrcode' or 'pairing'
     const phone = searchParams.get('phone');
 
     if (!name) return NextResponse.json({ error: 'Nome da instância é obrigatório' }, { status: 400 });
+    if (!verifyInstanceToken(name, token ?? undefined)) {
+      return NextResponse.json({ error: 'Link inválido ou expirado' }, { status: 403 });
+    }
 
     if (type === 'pairing') {
       if (!phone) return NextResponse.json({ error: 'Telefone é obrigatório para Pairing Code' }, { status: 400 });

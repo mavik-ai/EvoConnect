@@ -20,6 +20,7 @@ interface RawInstanceShape {
 }
 interface RawInstance extends RawInstanceShape {
   instance?: RawInstanceShape;
+  _connectToken?: string;
 }
 
 function normalizeStatus(s: string | undefined): 'open' | 'close' | 'connecting' {
@@ -120,9 +121,10 @@ export default function AdminPage() {
       return {
         instanceName: name,
         status: normalizeStatus(inner.status ?? inner.connectionStatus),
+        connectToken: r._connectToken,
       };
     })
-    .filter((x): x is { instanceName: string; status: 'open' | 'close' | 'connecting' } => x !== null);
+    .filter((x) => x !== null) as Array<{ instanceName: string; status: 'open' | 'close' | 'connecting'; connectToken?: string }>;
 
   const stats = {
     total: normalized.length,
