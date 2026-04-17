@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
-import { Plus, RefreshCw, Settings, AlertCircle } from 'lucide-react';
+import { Plus, RefreshCw, Settings, AlertCircle, Terminal } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { InstanceCard } from '@/components/ui/InstanceCard';
 import { EvolutionInstance } from '@/lib/evolution';
@@ -77,7 +77,7 @@ export default function AdminPage() {
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '30px' }}>
         {/* Formulário de Criação */}
         <aside>
           <GlassCard title="Nova Instância">
@@ -130,6 +130,17 @@ export default function AdminPage() {
             )}
           </div>
         </main>
+
+        {/* Terminal Log View */}
+        <aside style={{ display: 'flex', flexDirection: 'column' }}>
+          <GlassCard style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', background: '#0a0a0c', border: '1px solid #222' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #222', paddingBottom: '12px', marginBottom: '12px' }}>
+              <Terminal size={18} color="var(--primary)" />
+              <h3 style={{ fontSize: '1rem', margin: 0, fontFamily: 'monospace' }}>Live Logs</h3>
+            </div>
+            <TerminalLogs />
+          </GlassCard>
+        </aside>
       </div>
 
       <style jsx>{`
@@ -144,3 +155,30 @@ export default function AdminPage() {
     </div>
   );
 }
+
+function TerminalLogs() {
+  const { data } = useSWR('/api/logs', fetcher, { refreshInterval: 2000 });
+  const logs = data?.logs || [];
+
+  return (
+    <div style={{ overflowY: 'auto', flex: 1, fontFamily: 'monospace', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px' }}>
+      {logs.length === 0 ? (
+        <span style={{ color: '#555' }}>Aguardando eventos...</span>
+      ) : (
+        logs.map((log: any) => (
+          <div key={log.id} style={{ display: 'flex', gap: '8px' }}>
+            <span style={{ color: '#555' }}>[{log.timestamp}]</span>
+            <span style={{ 
+              color: log.type === 'error' ? 'var(--error)' : 
+                     log.type === 'success' ? 'var(--success)' : 
+                     log.type === 'warn' ? '#fbbf24' : '#E5E5E5' 
+            }}>
+              {log.message}
+            </span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+

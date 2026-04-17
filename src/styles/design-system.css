@@ -1,19 +1,22 @@
 :root {
-  --bg-dark: #0A0A0B;
-  --bg-card: rgba(23, 23, 26, 0.7);
-  --border-glass: rgba(255, 255, 255, 0.1);
+  /* Apple Dark Theme Colors */
+  --bg-dark: #000000;
+  --bg-card: rgba(30, 30, 30, 0.6);
+  --border-glass: rgba(255, 255, 255, 0.08);
   
-  --primary: #8B5CF6; /* Violet 500 */
-  --primary-glow: rgba(139, 92, 246, 0.4);
-  --accent: #D946EF; /* Fuchsia 500 */
+  /* WhatsApp Green accents */
+  --primary: #25D366; 
+  --primary-glow: rgba(37, 211, 102, 0.2);
+  --accent: #E5E5E5; /* Light gray for secondary text/highlights */
   
-  --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
+  /* Texts */
+  --text-primary: #F5F5F7; /* Apple's off-white */
+  --text-secondary: #86868B; /* Apple's subtle gray */
   
-  --success: #10B981;
-  --error: #EF4444;
+  --success: #25D366;
+  --error: #FF453A;
 
-  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 @keyframes fadeIn {
@@ -21,10 +24,10 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 5px var(--primary-glow); }
-  50% { box-shadow: 0 0 20px var(--primary-glow); }
-  100% { box-shadow: 0 0 5px var(--primary-glow); }
+@keyframes float {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+  100% { transform: translateY(0px) scale(1); }
 }
 
 /* Base Styles */
@@ -40,13 +43,43 @@ body {
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Subtle Apple/WhatsApp glowing orbs in background */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(120px);
+  opacity: 0.15;
+  animation: float 20s ease-in-out infinite alternate;
+}
+
+body::before {
+  background: var(--primary);
+  top: -100px;
+  right: -150px;
+}
+
+body::after {
+  background: #ffffff;
+  bottom: -200px;
+  left: -200px;
+  animation-delay: -10s;
+  opacity: 0.05;
 }
 
 /* Glass Components */
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
   padding: 24px;
@@ -60,18 +93,19 @@ body {
   padding: 12px 16px;
   color: white;
   width: 100%;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .glass-input:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
 }
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
+  background: var(--text-primary);
+  color: var(--bg-dark);
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
@@ -86,19 +120,38 @@ body {
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 10px 20px -10px var(--primary);
+  transform: scale(0.98);
+  opacity: 0.9;
 }
 
 .btn-primary:active {
-  transform: translateY(0);
+  transform: scale(0.95);
+}
+
+/* WhatsApp Specific Button */
+.btn-whatsapp {
+  background: var(--primary);
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-whatsapp:hover {
+  filter: brightness(1.1);
 }
 
 .btn-secondary {
-  background: transparent;
+  background: rgba(255,255,255,0.05);
   border: 1px solid var(--border-glass);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border-radius: 8px;
   padding: 12px 24px;
   cursor: pointer;
@@ -106,6 +159,6 @@ body {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
