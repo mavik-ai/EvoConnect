@@ -3,8 +3,10 @@ import { EvolutionService } from '@/lib/evolution';
 
 interface EvoInstanceShape {
   instanceName?: string;
+  name?: string;
   status?: string;
-  instance?: { instanceName?: string; status?: string };
+  connectionStatus?: string;
+  instance?: EvoInstanceShape;
 }
 
 export async function GET(req: NextRequest) {
@@ -17,7 +19,7 @@ export async function GET(req: NextRequest) {
     const instances: EvoInstanceShape[] = await EvolutionService.getInstances();
     const found = instances.find((i) => {
       const inner = i.instance ?? i;
-      return inner.instanceName === name;
+      return (inner.instanceName ?? inner.name) === name;
     });
 
     if (!found) {
@@ -25,12 +27,10 @@ export async function GET(req: NextRequest) {
     }
 
     const inner = found.instance ?? found;
-    const isConnected = inner.status === 'open';
+    const status = inner.status ?? inner.connectionStatus ?? 'close';
+    const isConnected = status === 'open';
 
-    return NextResponse.json({
-      status: inner.status,
-      isConnected
-    });
+    return NextResponse.json({ status, isConnected });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
     return NextResponse.json({ error: message }, { status: 500 });

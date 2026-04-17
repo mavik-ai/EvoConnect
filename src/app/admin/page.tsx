@@ -12,10 +12,20 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 type ShowToast = (message: string, type?: ToastType) => void;
 type ToastItem = { id: string; message: string; type: ToastType };
 
-interface RawInstance {
-  instance?: { instanceName?: string; status?: string };
+interface RawInstanceShape {
   instanceName?: string;
+  name?: string;
   status?: string;
+  connectionStatus?: string;
+}
+interface RawInstance extends RawInstanceShape {
+  instance?: RawInstanceShape;
+}
+
+function normalizeStatus(s: string | undefined): 'open' | 'close' | 'connecting' {
+  if (s === 'open') return 'open';
+  if (s === 'connecting') return 'connecting';
+  return 'close';
 }
 
 interface LogItem {
@@ -155,10 +165,11 @@ export default function AdminPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
             {Array.isArray(data?.instances) && data.instances.map((rawInst: RawInstance, i: number) => {
               const inner = rawInst.instance ?? rawInst;
-              if (!inner?.instanceName) return null;
+              const name = inner.instanceName ?? inner.name;
+              if (!name) return null;
               const inst = {
-                instanceName: inner.instanceName,
-                status: (inner.status ?? 'close') as 'open' | 'close' | 'connecting',
+                instanceName: name,
+                status: normalizeStatus(inner.status ?? inner.connectionStatus),
               };
               return (
                 <InstanceCard
