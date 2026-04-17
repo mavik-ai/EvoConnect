@@ -1,67 +1,148 @@
+<div align="center">
+
 # EvoConnect
 
-**EvoConnect** é um portal de autoatendimento white-label para vincular instâncias da [Evolution API](https://evolution-api.com/). Projetado sob o padrão visual e de engenharia da **Mavik**, ele permite que clientes finais conectem seus WhatsApps de forma autônoma e segura.
+**Portal white-label de autoatendimento para vincular instâncias da [Evolution API](https://evolution-api.com/).**
 
-## 🚀 Funcionalidades
-- **Painel Admin**: Gestão simples de instâncias (Criação, Exclusão, Status).
-- **Autoatendimento (Magic Link)**: Link público único por cliente para pareamento.
-- **Multi-Método**: Suporte a QR Code e Pairing Code (Experimental v2.3.7).
-- **Real-time Status**: Atualização automática do estado de conexão.
-- **Segurança**: Credenciais globais protegidas no servidor (Next.js API Routes).
+Crie instâncias, compartilhe um link público por cliente e deixe cada um escanear o próprio QR Code — sem nunca expor sua Global API Key.
 
-## 🛠️ Stack
-- [Next.js 15](https://nextjs.org/) (App Router)
-- Vanilla CSS (Mavik Design System)
-- [Lucide React](https://lucide.dev/) (Ícones)
-- [SWR](https://swr.vercel.app/) (Data Fetching & Polling)
+![Next.js](https://img.shields.io/badge/Next.js-15-000?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript) ![Evolution API](https://img.shields.io/badge/Evolution_API-v2.3.7-25D366) ![License](https://img.shields.io/badge/license-MIT-green)
 
-## 📦 Como Instalar
+</div>
 
-### 1. Clonar Repositório
+---
+
+## ✨ Funcionalidades
+
+- **Painel Admin** — criar, excluir e acompanhar status em tempo real
+- **Link público por instância** — assinado com HMAC, um por cliente
+- **QR Code em tempo real** — polling a cada 4s (status) e 30s (QR)
+- **Filtros por status** — Todas · Conectadas · Conectando · Desconectadas + busca por nome
+- **Live Logs** — drawer flutuante com eventos do sistema
+- **Mobile-first** — tela de conexão otimizada pra celular/desktop
+- **Sem banco de dados** — tudo stateless; a Evolution API é a fonte da verdade
+
+## 🧱 Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Frontend/Backend | [Next.js 15](https://nextjs.org/) (App Router, Turbopack) |
+| Linguagem | TypeScript |
+| Styling | Vanilla CSS + CSS Modules + styled-jsx (Design System Mavik) |
+| Data fetching | [SWR](https://swr.vercel.app/) (polling) |
+| Ícones | [Lucide React](https://lucide.dev/) |
+| API | [Evolution API v2.3.7](https://evolution-api.com/) |
+
+## 🚀 Como rodar
+
+### 1. Clonar
+
 ```bash
-git clone https://github.com/seu-usuario/evoconnect.git
-cd evoconnect
-```
-
-### 2. Configurar Variáveis de Ambiente
-Crie um arquivo `.env.local` baseado no `.env.example`:
-```bash
-cp .env.example .env.local
-```
-Preencha os valores:
-- `EVO_URL`: URL da sua Evolution API (ex: `https://api.empresa.com`).
-- `EVO_GLOBAL_KEY`: Sua chave global da API.
-- `ADMIN_PASSWORD`: Uma senha para acesso ao seu painel.
-
-### 3. Instalar Dependências
-```bash
+git clone https://github.com/mavik-ai/EvoConnect.git
+cd EvoConnect
 npm install
 ```
 
-### 4. Rodar Localmente
+### 2. Configurar ambiente
+
+```bash
+cp .env.example .env.local
+```
+
+Preencha o `.env.local`:
+
+| Variável | Obrigatória | Descrição |
+|---|:-:|---|
+| `EVO_URL` | ✅ | URL da sua Evolution API (sem barra no fim) |
+| `EVO_GLOBAL_KEY` | ✅ | Global API Key da Evolution |
+| `ADMIN_PASSWORD` | ✅ | Senha do painel `/admin` |
+| `SESSION_SECRET` | ✅ | Segredo pra assinar sessões e links (ver abaixo) |
+| `NEXT_PUBLIC_SITE_URL` | ⭕ | URL pública (só pra docs) |
+
+**Gere o `SESSION_SECRET` com segurança:**
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+> O valor nunca deve ir pra chat, email, commit ou prints. Cole direto no `.env.local` / Vercel.
+
+### 3. Rodar
+
 ```bash
 npm run dev
 ```
-Acesse `http://localhost:3000`.
 
-## 🌍 Deploy na Vercel (Importante🚨)
+Acesse `http://localhost:3000/admin`.
 
-O deploy ideal para este projeto é na Vercel. 
+## ☁️ Deploy na Vercel
 
-**⚠️ PASSO CRÍTICO ANTES DO DEPLOY:**
-Você **DEVE** configurar as variáveis de ambiente na Vercel para que o projeto funcione.
+1. Suba o repo no GitHub
+2. Em [vercel.com](https://vercel.com) → **Add New** → **Project** → importe o repo
+3. Expanda **Environment Variables** e cadastre as 4 obrigatórias:
+   - `EVO_URL`
+   - `EVO_GLOBAL_KEY`
+   - `ADMIN_PASSWORD`
+   - `SESSION_SECRET`
+4. Clique em **Deploy**
 
-1. Suba o projeto para um repositório no GitHub.
-2. No dashboard da [Vercel](https://vercel.com/), clique em "Add New..." > "Project" e importe o seu repositório.
-3. Antes de clicar em Deploy, expanda a seção **Environment Variables** e adicione as seguintes chaves (exatamente como configurado no passo a passo local):
-   * `NEXT_PUBLIC_SITE_URL` (Sua URL da Vercel ou domínio)
-   * `EVO_URL` (Sua URL da Evolution API)
-   * `EVO_GLOBAL_KEY` (Sua Global API Key)
-   * `ADMIN_PASSWORD` (A senha que deseja usar no painel)
-4. Clique em **Deploy**.
+> ⚠️ Em produção, sem `SESSION_SECRET` ou `ADMIN_PASSWORD` configurados, o login é recusado intencionalmente.
 
-## 🛡️ Segurança
-Este projeto foi construído para ser seguro em repositórios públicos. **Nunca remova a `.env` do `.gitignore`**. O `Global API Key` é usado exclusivamente em chamadas server-side.
+## 🔐 Modelo de segurança
+
+| Vetor | Proteção |
+|---|---|
+| Bypass de sessão por cookie forjado | Cookie assinado via `HMAC-SHA256` (`crypto.timingSafeEqual`) |
+| Captura do QR por enumeração de nomes | Link público exige `?t=<token>` (HMAC determinístico da instância) |
+| Timing attack na senha | Comparação em tempo constante |
+| CSRF / downgrade HTTP | `sameSite=lax` + `secure` em produção |
+| Vazamento da Global Key | Todas as chamadas à Evolution são server-side; key nunca vai ao browser |
+| Input malicioso em `name` | Regex estrita: `^[a-z0-9-]{2,64}$` |
+
+Auditoria completa e threat model no commit [`2947f70`](../../commit/2947f70).
+
+## 📂 Estrutura
+
+```
+src/
+├── app/
+│   ├── admin/              # Painel administrativo (protegido)
+│   ├── connect/[slug]/     # Página pública de conexão do cliente
+│   └── api/                # Rotas server-side (auth, instances, connect, logs)
+├── components/ui/          # Componentes do Design System Mavik
+├── lib/
+│   ├── auth.ts             # HMAC + verificação de sessão e tokens
+│   ├── evolution.ts        # Cliente Evolution API
+│   └── logger.ts           # Live logs in-memory
+└── styles/                 # Tokens e tema escuro
+```
+
+## 🧭 Fluxo de uso
+
+```mermaid
+flowchart LR
+    A[Admin] -->|cria instância| B(EvoConnect)
+    B -->|/instance/create| C[Evolution API]
+    A -->|copia link c/ token| D[Cliente final]
+    D -->|abre /connect/:slug?t=| B
+    B -->|valida token + busca QR| C
+    D -.scan no WhatsApp.-> C
+    C -->|status: open| B
+    B -->|✅ Conectado| D
+```
+
+## 📜 Licença
+
+MIT — use, forke, venda. Só não remova a atribuição abaixo se for útil no seu fork 💚
 
 ---
-Criado com ❤️ por **Mavik.ai**
+
+<div align="center">
+
+🧠 Desenvolvido por **[Mavik.ai Solutions](https://mavik.ai)**
+
+Instagram: [@mavik.ai](https://instagram.com/mavik.ai) · [@rafaeljorgebr](https://instagram.com/rafaeljorgebr)
+
+<sub>Open source for WhatsApp automation done right.</sub>
+
+</div>
