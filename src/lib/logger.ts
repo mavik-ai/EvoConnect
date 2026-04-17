@@ -13,7 +13,7 @@ class Logger {
   addLog(message: string, type: LogEntry['type'] = 'info') {
     const entry: LogEntry = {
       id: Math.random().toString(36).substring(7),
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
+      timestamp: new Date().toLocaleTimeString('pt-BR', { hour12: false, timeZone: 'America/Sao_Paulo' }),
       message,
       type,
     };
