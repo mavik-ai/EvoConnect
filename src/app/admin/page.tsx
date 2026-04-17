@@ -134,13 +134,16 @@ export default function AdminPage() {
         {/* Listagem */}
         <main>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-            {data?.instances?.map((inst: EvolutionInstance) => (
-              <InstanceCard 
-                key={inst.instanceName} 
-                instance={inst} 
-                onDelete={handleDelete} 
-              />
-            ))}
+            {Array.isArray(data?.instances) && data.instances.map((rawInst: any, i: number) => {
+              const inst = rawInst.instance ? rawInst.instance : (rawInst.instanceName ? rawInst : rawInst);
+              return (
+                <InstanceCard 
+                  key={inst?.instanceName || `inst-${i}`} 
+                  instance={inst} 
+                  onDelete={handleDelete} 
+                />
+              );
+            })}
             
             {isLoading && <p>Carregando instâncias...</p>}
             {!isLoading && (!data?.instances || data.instances.length === 0) && (
@@ -182,11 +185,11 @@ function TerminalLogs() {
 
   return (
     <div style={{ overflowY: 'auto', flex: 1, fontFamily: 'monospace', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px' }}>
-      {logs.length === 0 ? (
+      {!Array.isArray(logs) || logs.length === 0 ? (
         <span style={{ color: '#555' }}>Aguardando eventos...</span>
       ) : (
         logs.map((log: any) => (
-          <div key={log.id} style={{ display: 'flex', gap: '8px' }}>
+          <div key={log?.id || Math.random()} style={{ display: 'flex', gap: '8px' }}>
             <span style={{ color: '#555' }}>[{log.timestamp}]</span>
             <span style={{ 
               color: log.type === 'error' ? 'var(--error)' : 
