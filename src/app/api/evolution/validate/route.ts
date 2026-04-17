@@ -11,7 +11,8 @@ export async function GET() {
     } else {
       return NextResponse.json({ status: 'error', message: 'Falha na conexão. Verifique EVO_URL e EVO_GLOBAL_KEY.' }, { status: 401 });
     }
-  } catch (error: any) {
-    return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

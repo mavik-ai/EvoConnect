@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import useSWR from 'swr';
 import { useParams } from 'next/navigation';
 import { QrCode, Smartphone, Loader2, CheckCircle2, ShieldCheck, RefreshCw } from 'lucide-react';
@@ -25,7 +25,7 @@ export default function ConnectPage() {
   );
 
   // Poll QR Code data a cada 30 segundos (se não estiver conectado)
-  const { data: connectData, mutate: refreshConnect } = useSWR(
+  const { data: connectData } = useSWR(
     slug && !statusData?.isConnected && method === 'qrcode' 
       ? `/api/connect/data?name=${slug}&type=qrcode` 
       : null,
@@ -45,8 +45,8 @@ export default function ConnectPage() {
       } else {
         throw new Error(data.message || 'Falha ao gerar código');
       }
-    } catch (err: any) {
-      showToast(err.message, 'error');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Erro desconhecido', 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -96,6 +96,7 @@ export default function ConnectPage() {
           <div className="qrcode-section">
             {connectData?.base64 ? (
               <div className="qr-wrapper">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={connectData.base64} alt="QR Code" />
               </div>
             ) : (

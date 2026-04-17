@@ -21,9 +21,10 @@ export async function GET(req: NextRequest) {
       const data = await EvolutionService.getConnectData(name);
       return NextResponse.json(data);
     }
-  } catch (error: any) {
-    systemLogger.addLog(`Erro ao buscar dados de conexão: ${error.message}`, 'error');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    systemLogger.addLog(`Erro ao buscar dados de conexão: ${message}`, 'error');
     console.error('Connect Data Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

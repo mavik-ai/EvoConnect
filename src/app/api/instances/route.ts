@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EvolutionService } from '@/lib/evolution';
 
+const errMsg = (e: unknown) => (e instanceof Error ? e.message : 'Erro desconhecido');
+
 export async function GET(req: NextRequest) {
   if (req.cookies.get('evo_admin_auth')?.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  
+
   try {
     const instances = await EvolutionService.getInstances();
     return NextResponse.json({ instances });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: errMsg(error) }, { status: 500 });
   }
 }
 
@@ -21,8 +23,8 @@ export async function POST(req: NextRequest) {
 
     const result = await EvolutionService.createInstance(name);
     return NextResponse.json(result);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: errMsg(error) }, { status: 500 });
   }
 }
 
@@ -36,7 +38,7 @@ export async function DELETE(req: NextRequest) {
 
     const result = await EvolutionService.deleteInstance(name);
     return NextResponse.json(result);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: errMsg(error) }, { status: 500 });
   }
 }

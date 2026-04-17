@@ -107,9 +107,7 @@ export const EvolutionService = {
   },
 
   async getPairingCode(name: string, number: string) {
-    return this.request(`/instance/connect/${name}`, {
-      method: 'GET', // V2.3.7 Docs might vary; typically it's an API query or POST. For instance/connect it's supposed to be returned if ?number= is passed in some versions, but as per our previous setup we did GET with query ?number
-    });
+    return this.request(`/instance/connect/${name}?number=${encodeURIComponent(number)}`);
   },
 
   async deleteInstance(name: string) {
