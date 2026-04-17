@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
-import { Plus, RefreshCw, Settings, AlertCircle, Terminal } from 'lucide-react';
+import { Plus, RefreshCw, Settings, AlertCircle, Terminal, Eye, EyeOff } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { InstanceCard } from '@/components/ui/InstanceCard';
 import { EvolutionInstance } from '@/lib/evolution';
@@ -205,6 +205,7 @@ function TerminalLogs() {
 function SetupScreen({ onComplete, showToast, toasts, removeToast }: any) {
   const [url, setUrl] = useState('');
   const [key, setKey] = useState('');
+  const [showKey, setShowKey] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -248,13 +249,23 @@ function SetupScreen({ onComplete, showToast, toasts, removeToast }: any) {
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem' }}>Global API Key</label>
-            <input 
-              type="password" 
-              className="glass-input" 
-              placeholder="Sua chave global..." 
-              value={key} onChange={e => setKey(e.target.value)} 
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showKey ? "text" : "password"} 
+                className="glass-input" 
+                placeholder="Sua chave global..." 
+                value={key} onChange={e => setKey(e.target.value)} 
+                required
+                style={{ paddingRight: '40px' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowKey(!showKey)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+              >
+                {showKey ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <button type="submit" className="btn-whatsapp" disabled={loading} style={{ marginTop: '8px' }}>
             {loading ? 'Validando...' : 'Conectar e Salvar'}
@@ -267,6 +278,7 @@ function SetupScreen({ onComplete, showToast, toasts, removeToast }: any) {
 
 function AuthScreen({ onLogin }: any) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -294,13 +306,23 @@ function AuthScreen({ onLogin }: any) {
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem' }}>Senha Administrativa</label>
-            <input 
-              type="password" 
-              className="glass-input" 
-              placeholder="••••••••" 
-              value={password} onChange={e => setPassword(e.target.value)} 
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                className="glass-input" 
+                placeholder="••••••••" 
+                value={password} onChange={e => setPassword(e.target.value)} 
+                required
+                style={{ paddingRight: '40px' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           {error && <p style={{ color: 'var(--error)', fontSize: '0.875rem' }}>{error}</p>}
           <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '8px' }}>
