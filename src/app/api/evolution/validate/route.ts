@@ -3,7 +3,8 @@ import { EvolutionService } from '@/lib/evolution';
 
 export async function GET() {
   try {
-    const isValid = await EvolutionService.validateConnection();
+    const instances = await EvolutionService.getInstances();
+    const isValid = !!instances;
     
     if (isValid) {
       return NextResponse.json({ status: 'connected', message: 'Conexão com Evolution API validada com sucesso.' });

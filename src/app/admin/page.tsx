@@ -12,9 +12,29 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AdminPage() {
   const { toasts, showToast, removeToast } = useToast();
-  const { data, error, mutate, isLoading } = useSWR('/api/instances', fetcher, {
-    refreshInterval: 10000, // Sync a cada 10 segundos
+  
+  const { data: authData, error: authError, mutate: mutateAuth } = useSWR('/api/auth', fetcher);
+  const { data: settingsData, error: settingsError, mutate: mutateSettings } = useSWR(authData?.isAuthenticated ? '/api/settings' : null, fetcher);
+  
+  const { data, error, mutate, isLoading } = useSWR(settingsData?.isConfigured && authData?.isAuthenticated ? '/api/instances' : null, fetcher, {
+    refreshInterval: 10000,
   });
+
+  if (!authData) {
+    return <div className="spin" style={{ margin: 'auto', marginTop: '100px', width: '30px', height: '30px', border: '3px solid var(--primary)', borderRadius: '50%', borderTopColor: 'transparent' }} />
+  }
+
+  if (!authData.isAuthenticated) {
+    return <AuthScreen onLogin={() => mutateAuth()} />
+  }
+
+  if (!settingsData) {
+    return <div className="spin" style={{ margin: 'auto', marginTop: '100px', width: '30px', height: '30px', border: '3px solid var(--primary)', borderRadius: '50%', borderTopColor: 'transparent' }} />
+  }
+
+  if (!settingsData.isConfigured) {
+    return <SetupScreen onComplete={() => mutateSettings()} showToast={showToast} toasts={toasts} removeToast={removeToast} />
+  }
 
   const [newInstanceName, setNewInstanceName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -182,3 +202,112 @@ function TerminalLogs() {
   );
 }
 
+function SetupScreen({ onComplete, showToast, toasts, removeToast }: any) {
+  const [url, setUrl] = useState('');
+  const [key, setKey] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, globalKey: key }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao conectar');
+      
+      showToast('Credenciais conectadas e salvas com sucesso!', 'success');
+      onComplete();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '100px auto' }}>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <GlassCard title="Configuração Inicial">
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.9rem' }}>
+          Conecte sua Evolution API para gerenciar as instâncias.
+        </p>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem' }}>Evolution API URL</label>
+            <input 
+              type="url" 
+              className="glass-input" 
+              placeholder="https://sua-evolution.com" 
+              value={url} onChange={e => setUrl(e.target.value)} 
+              required
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem' }}>Global API Key</label>
+            <input 
+              type="password" 
+              className="glass-input" 
+              placeholder="Sua chave global..." 
+              value={key} onChange={e => setKey(e.target.value)} 
+              required
+            />
+          </div>
+          <button type="submit" className="btn-whatsapp" disabled={loading} style={{ marginTop: '8px' }}>
+            {loading ? 'Validando...' : 'Conectar e Salvar'}
+          </button>
+        </form>
+      </GlassCard>
+    </div>
+  );
+}
+
+function AuthScreen({ onLogin }: any) {
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) throw new Error('Senha incorreta');
+      onLogin();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '150px auto' }}>
+      <GlassCard title="Acesso Restrito">
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem' }}>Senha Administrativa</label>
+            <input 
+              type="password" 
+              className="glass-input" 
+              placeholder="••••••••" 
+              value={password} onChange={e => setPassword(e.target.value)} 
+              required
+            />
+          </div>
+          {error && <p style={{ color: 'var(--error)', fontSize: '0.875rem' }}>{error}</p>}
+          <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '8px' }}>
+            {loading ? 'Entrando...' : 'Acessar Painel'}
+          </button>
+        </form>
+      </GlassCard>
+    </div>
+  );
+}

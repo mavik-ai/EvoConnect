@@ -9,8 +9,8 @@ export async function GET(req: NextRequest) {
 
     if (!name) return NextResponse.json({ error: 'Nome da instância é obrigatório' }, { status: 400 });
 
-    const instances = await EvolutionService.fetchInstances();
-    const instance = instances.find((i) => i.instanceName === name);
+    const instances = await EvolutionService.getInstances();
+    const instance = instances.find((i: any) => i.instanceName === name);
 
     if (!instance) {
       return NextResponse.json({ error: 'Instância não encontrada' }, { status: 404 });

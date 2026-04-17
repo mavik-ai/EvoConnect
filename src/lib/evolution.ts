@@ -1,75 +1,120 @@
+import fs from 'fs';
+import path from 'path';
+
 export interface EvolutionInstance {
   instanceName: string;
   status: 'open' | 'close' | 'connecting';
-  owner?: string;
-  profileName?: string;
-  profilePictureUrl?: string;
 }
 
-const EVO_URL = process.env.EVO_URL;
-const GLOBAL_KEY = process.env.EVO_GLOBAL_KEY;
+export interface EvoSettings {
+  url: string;
+  globalKey: string;
+}
 
-export class EvolutionService {
-  private static async request(endpoint: string, method: string = 'GET', body?: any) {
-    if (!EVO_URL || !GLOBAL_KEY) {
-      throw new Error('EvoConnect: Configuração ausente (EVO_URL ou EVO_GLOBAL_KEY)');
+const SETTINGS_FILE = path.join(process.cwd(), 'src', 'data', 'settings.json');
+
+export const getSettings = (): EvoSettings => {
+  // Configured in memory/ENV takes highest priority
+  if (process.env.EVO_URL && process.env.EVO_GLOBAL_KEY) {
+    return {
+      url: process.env.EVO_URL,
+      globalKey: process.env.EVO_GLOBAL_KEY,
+    };
+  }
+
+  // Backup: Local JSON file for local configurations
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Lendo config falhou', err);
+  }
+
+  return { url: '', globalKey: '' };
+};
+
+export const saveSettings = (settings: EvoSettings) => {
+  try {
+    fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+    return true;
+  } catch (err) {
+    console.error('Saving config falhou', err);
+    return false;
+  }
+};
+
+export const EvolutionService = {
+  get baseUrl() {
+    return getSettings().url.replace(/\/$/, '');
+  },
+
+  get apiKey() {
+    return getSettings().globalKey;
+  },
+
+  async request(endpoint: string, options: RequestInit = {}) {
+    const url = this.baseUrl;
+    const key = this.apiKey;
+
+    if (!url || !key) {
+      throw new Error('Evolution API Credentials not configured.');
     }
 
-    const res = await fetch(`${EVO_URL}${endpoint}`, {
-      method,
+    const res = await fetch(`${url}${endpoint}`, {
+      ...options,
       headers: {
+        'apikey': key,
         'Content-Type': 'application/json',
-        'apikey': GLOBAL_KEY,
+        ...options.headers,
       },
-      body: body ? JSON.stringify(body) : undefined,
     });
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `Erro na API Evolution: ${res.status}`);
+      throw new Error(errorData.message || `Evolution API Error: ${res.status}`);
     }
 
     return res.json();
-  }
+  },
 
-  // Valida conexão global
-  static async validateConnection() {
-    try {
-      await this.request('/instance/fetchInstances');
-      return true;
-    } catch (error) {
-      console.error('Validation error:', error);
-      return false;
-    }
-  }
+  async validateConnection(urlTest: string, keyTest: string) {
+    const res = await fetch(`${urlTest.replace(/\/$/, '')}/instance/fetchInstances`, {
+      headers: { 'apikey': keyTest },
+    });
+    return res.ok;
+  },
 
-  // Lista todas as instâncias
-  static async fetchInstances(): Promise<EvolutionInstance[]> {
+  async getInstances() {
     return this.request('/instance/fetchInstances');
-  }
+  },
 
-  // Cria uma nova instância
-  static async createInstance(instanceName: string) {
-    return this.request('/instance/create', 'POST', {
-      instanceName,
-      token: Math.random().toString(36).substring(7), // Token aleatório para a instância
-      qrcode: true,
+  async createInstance(name: string) {
+    return this.request('/instance/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        instanceName: name,
+        qrcode: true,
+        integration: 'WHATSAPP-BAILEYS'
+      }),
+    });
+  },
+
+  async getConnectData(name: string) {
+    return this.request(`/instance/connect/${name}`);
+  },
+
+  async getPairingCode(name: string, number: string) {
+    return this.request(`/instance/connect/${name}`, {
+      method: 'GET', // V2.3.7 Docs might vary; typically it's an API query or POST. For instance/connect it's supposed to be returned if ?number= is passed in some versions, but as per our previous setup we did GET with query ?number
+    });
+  },
+
+  async deleteInstance(name: string) {
+    return this.request(`/instance/delete/${name}`, {
+      method: 'DELETE',
     });
   }
-
-  // Deleta uma instância
-  static async deleteInstance(instanceName: string) {
-    return this.request(`/instance/delete/${instanceName}`, 'DELETE');
-  }
-
-  // Busca QR Code
-  static async getConnectData(instanceName: string) {
-    return this.request(`/instance/connect/${instanceName}`);
-  }
-
-  // Solicita Pairing Code (Experimental v2.3.7)
-  static async getPairingCode(instanceName: string, phoneNumber: string) {
-    // Nota: O endpoint pode variar, v2.3.x usa connect/pairingCode
-    return this.request(`/instance/connect/pairingCode/${instanceName}?number=${phoneNumber}`);
-  }
-}
+};

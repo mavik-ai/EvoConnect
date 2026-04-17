@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EvolutionService } from '@/lib/evolution';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (req.cookies.get('evo_admin_auth')?.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  
   try {
-    const instances = await EvolutionService.fetchInstances();
+    const instances = await EvolutionService.getInstances();
     return NextResponse.json({ instances });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -11,6 +13,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (req.cookies.get('evo_admin_auth')?.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   try {
     const { name } = await req.json();
     if (!name) return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 });
@@ -23,6 +27,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (req.cookies.get('evo_admin_auth')?.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   try {
     const { searchParams } = new URL(req.url);
     const name = searchParams.get('name');
