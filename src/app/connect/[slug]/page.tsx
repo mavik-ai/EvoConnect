@@ -5,11 +5,13 @@ import useSWR from 'swr';
 import { useParams } from 'next/navigation';
 import { QrCode, Smartphone, Loader2, CheckCircle2, ShieldCheck, RefreshCw } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { useToast, ToastContainer } from '@/components/ui/Toast';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ConnectPage() {
   const { slug } = useParams();
+  const { toasts, showToast, removeToast } = useToast();
   const [method, setMethod] = useState<'qrcode' | 'pairing'>('qrcode');
   const [phone, setPhone] = useState('');
   const [pairingCode, setPairingCode] = useState('');
@@ -39,11 +41,12 @@ export default function ConnectPage() {
       const data = await res.json();
       if (data.code) {
         setPairingCode(data.code);
+        showToast('Código de pareamento gerado com sucesso!', 'success');
       } else {
         throw new Error(data.message || 'Falha ao gerar código');
       }
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -52,6 +55,7 @@ export default function ConnectPage() {
   if (statusData?.isConnected) {
     return (
       <main className="connect-container">
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
         <GlassCard className="status-card success">
           <CheckCircle2 size={64} color="var(--success)" />
           <h2>WhatsApp Conectado!</h2>
@@ -66,6 +70,7 @@ export default function ConnectPage() {
 
   return (
     <main className="connect-container">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="connect-header">
         <h1>Conectar WhatsApp</h1>
         <p>Instância: <strong>{slug}</strong></p>

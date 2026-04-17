@@ -13,10 +13,13 @@ interface InstanceCardProps {
 export const InstanceCard: React.FC<InstanceCardProps> = ({ instance, onDelete }) => {
   const isConnected = instance.status === 'open';
 
+  const [copied, setCopied] = React.useState(false);
+
   const copyLink = () => {
     const url = `${window.location.origin}/connect/${instance.instanceName}`;
     navigator.clipboard.writeText(url);
-    alert('Link copiado para a área de transferência!');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -52,9 +55,9 @@ export const InstanceCard: React.FC<InstanceCardProps> = ({ instance, onDelete }
         <button 
           onClick={copyLink}
           className="btn-primary" 
-          style={{ flex: 1, padding: '8px', fontSize: '0.875rem' }}
+          style={{ flex: 1, padding: '8px', fontSize: '0.875rem', background: copied ? 'var(--success)' : '' }}
         >
-          <LinkIcon size={16} /> Link Cliente
+          {copied ? <><CheckCircle size={16} /> Copiado!</> : <><LinkIcon size={16} /> Link Cliente</>}
         </button>
         <button 
           onClick={() => onDelete(instance.instanceName)}

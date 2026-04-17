@@ -8,7 +8,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { password } = await req.json();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin'; // fallback super inseguro mas permite teste local
+    if (!process.env.ADMIN_PASSWORD && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Configuração de senha do admin pendente no servidor' }, { status: 500 });
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
     
     if (password === adminPassword) {
       const response = NextResponse.json({ success: true });
